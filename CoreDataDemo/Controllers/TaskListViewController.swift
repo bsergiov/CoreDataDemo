@@ -90,6 +90,25 @@ class TaskListViewController: UITableViewController {
         }
         present(alert, animated: true)
     }
+    
+    private func showAlertEdit(textField text: String) {
+        let allert = UIAlertController(title: "Update task", message: "Update task", preferredStyle: .alert)
+        let editAction = UIAlertAction(title: "Edit", style: .default) { _ in
+            guard let task = allert.textFields?.first?.text, !task.isEmpty else { return }
+            self.save(task)
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .destructive)
+        
+        allert.addAction(editAction)
+        allert.addAction(cancelAction)
+        allert.addTextField { textField in
+            textField.text = text
+        }
+        present(allert, animated: true)
+    }
+    
+    
     private func save(_ taskName: String) {
         
         let task = Task(context: context)
@@ -130,4 +149,34 @@ extension TaskListViewController {
         }
         
     }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        taskList[indexPath.row].name = "ku"
+        guard let taskName = taskList[indexPath.row].name else { return }
+        showAlertUpdate(for: indexPath, nameTask: taskName)
+//        StorageManager.shared.save(context: context)
+//        tableView.reloadRows(at: [indexPath], with: .fade)
+    }
+    
+    private func showAlertUpdate(for indexPath: IndexPath, nameTask: String) {
+        let alert = UIAlertController(title: "Update task", message: "Please specify a new task", preferredStyle: .alert)
+        
+        let updateAction = UIAlertAction(title: "update", style: .default) { action in
+            guard let newTask = alert.textFields?.first?.text else { return }
+            self.taskList[indexPath.row].name = newTask
+            self.tableView.reloadRows(at: [indexPath], with: .fade)
+            StorageManager.shared.save(context: self.context)
+        }
+        
+        let canceleAction = UIAlertAction(title: "Cancel", style: .destructive)
+        alert.addAction(updateAction)
+        alert.addAction(canceleAction)
+        
+        alert.addTextField { textFields in
+            textFields.text = nameTask
+        }
+        present(alert, animated: true)
+    }
+   
 }
