@@ -1,33 +1,24 @@
 //
-//  AppDelegate.swift
+//  StorageManager.swift
 //  CoreDataDemo
 //
-//  Created by brubru on 24.01.2022.
+//  Created by BSergio on 25.01.2022.
 //
 
-import UIKit
+import Foundation
 import CoreData
 
-@main
-class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
-
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        window = UIWindow(frame: UIScreen.main.bounds)
-        window?.makeKeyAndVisible()
-        window?.rootViewController = UINavigationController(rootViewController: TaskListViewController())
-        return true
-    }
+class StorageManager {
     
-    func applicationWillTerminate(_ application: UIApplication) {
-        saveContext()
-    }
-
+    static let shared = StorageManager()
+    
+    private init() {}
+    
+    
 
     // MARK: - Core Data stack
-
-    lazy var persistentContainer: NSPersistentContainer = {
+    var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "CoreDataDemo")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
@@ -37,9 +28,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         })
         return container
     }()
-
+    
     // MARK: - Core Data Saving support
-
     func saveContext () {
         let context = persistentContainer.viewContext
         if context.hasChanges {
@@ -51,6 +41,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
     }
-
+    
+    func save(context: NSManagedObjectContext) {
+        do {
+            try context.save()
+        } catch {
+            print(error)
+        }
+    }
+    
+    func delete(context: NSManagedObjectContext, object: NSManagedObject) {
+        context.delete(object)
+        do {
+            try context.save()
+        } catch {
+            print(error)
+        }
+    }
 }
-

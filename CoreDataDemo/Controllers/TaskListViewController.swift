@@ -6,13 +6,16 @@
 //
 
 import UIKit
-import CoreData
 
 class TaskListViewController: UITableViewController {
-    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
+    // MARK: - Private Properties
+    private let context = StorageManager.shared.persistentContainer.viewContext
+   
     private let cellID = "task"
     private var taskList: [Task] = []
+    
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -96,11 +99,8 @@ class TaskListViewController: UITableViewController {
         let cellIndex = IndexPath(row: taskList.count - 1, section: 0)
         tableView.insertRows(at: [cellIndex], with: .automatic)
         
-        do {
-            try context.save()
-        } catch let error {
-            print(error)
-        }
+        StorageManager.shared.save(context: context)
+        
     }
 }
 
@@ -117,5 +117,17 @@ extension TaskListViewController {
         content.text = task.name
         cell.contentConfiguration = content
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        
+        if editingStyle == .delete {
+            let task = taskList[indexPath.row]
+            StorageManager.shared.delete(context: context, object: task)
+            taskList.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            
+        }
+        
     }
 }
