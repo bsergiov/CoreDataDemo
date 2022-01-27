@@ -42,6 +42,7 @@ class StorageManager {
         }
     }
     
+    // MARK: - Save Method
     func save(context: NSManagedObjectContext) {
         do {
             try context.save()
@@ -50,6 +51,7 @@ class StorageManager {
         }
     }
     
+    // MARK: - Remove Method
     func delete(context: NSManagedObjectContext, object: NSManagedObject) {
         context.delete(object)
         do {

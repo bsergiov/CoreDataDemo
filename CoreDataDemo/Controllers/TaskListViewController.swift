@@ -15,8 +15,6 @@ class TaskListViewController: UITableViewController {
     private let cellID = "task"
     private var taskList: [Task] = []
     
-    
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -30,7 +28,11 @@ class TaskListViewController: UITableViewController {
         fetchData()
         tableView.reloadData()
     }
- 
+}
+
+// MARK: - Setup Interface Methodes
+extension TaskListViewController {
+    
     private func setupNavigationBar() {
         title = "Task List"
         navigationController?.navigationBar.prefersLargeTitles = true
@@ -57,21 +59,42 @@ class TaskListViewController: UITableViewController {
         )
         
         navigationController?.navigationBar.tintColor = .white
+    }
+}
+
+// MARK: - Private Methods
+extension TaskListViewController {
+    
+    private func save(_ taskName: String) {
         
+        let task = Task(context: context)
+        task.name = taskName
+        taskList.append(task)
+        
+        let cellIndex = IndexPath(row: taskList.count - 1, section: 0)
+        tableView.insertRows(at: [cellIndex], with: .automatic)
+        
+        StorageManager.shared.save(context: context)
     }
     
-    @objc private func addNewTask() {
-        showAlert(with: "New Task", and: "What do you want to do?")
-    }
-    
-    private func fetchData() {
-        let fetchRequest = Task.fetchRequest()
+    private func showAlertUpdate(for indexPath: IndexPath, nameTask: String) {
+        let alert = UIAlertController(title: "Update task", message: "Please specify a new task", preferredStyle: .alert)
         
-        do {
-            taskList = try context.fetch(fetchRequest)
-        } catch {
-           print("Faild to fetch data", error)
+        let updateAction = UIAlertAction(title: "update", style: .default) { action in
+            guard let newTask = alert.textFields?.first?.text else { return }
+            self.taskList[indexPath.row].name = newTask
+            self.tableView.reloadRows(at: [indexPath], with: .fade)
+            StorageManager.shared.save(context: self.context)
         }
+        
+        let canceleAction = UIAlertAction(title: "Cancel", style: .destructive)
+        alert.addAction(updateAction)
+        alert.addAction(canceleAction)
+        
+        alert.addTextField { textFields in
+            textFields.text = nameTask
+        }
+        present(alert, animated: true)
     }
     
     private func showAlert(with title: String, and message: String) {
@@ -91,38 +114,22 @@ class TaskListViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    private func showAlertEdit(textField text: String) {
-        let allert = UIAlertController(title: "Update task", message: "Update task", preferredStyle: .alert)
-        let editAction = UIAlertAction(title: "Edit", style: .default) { _ in
-            guard let task = allert.textFields?.first?.text, !task.isEmpty else { return }
-            self.save(task)
-        }
-        
-        let cancelAction = UIAlertAction(title: "Cancel", style: .destructive)
-        
-        allert.addAction(editAction)
-        allert.addAction(cancelAction)
-        allert.addTextField { textField in
-            textField.text = text
-        }
-        present(allert, animated: true)
+    @objc private func addNewTask() {
+        showAlert(with: "New Task", and: "What do you want to do?")
     }
     
-    
-    private func save(_ taskName: String) {
+    private func fetchData() {
+        let fetchRequest = Task.fetchRequest()
         
-        let task = Task(context: context)
-        task.name = taskName
-        taskList.append(task)
-        
-        let cellIndex = IndexPath(row: taskList.count - 1, section: 0)
-        tableView.insertRows(at: [cellIndex], with: .automatic)
-        
-        StorageManager.shared.save(context: context)
-        
+        do {
+            taskList = try context.fetch(fetchRequest)
+        } catch {
+           print("Faild to fetch data", error)
+        }
     }
 }
 
+// MARK: - Protocol TableView
 extension TaskListViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         taskList.count
@@ -145,9 +152,7 @@ extension TaskListViewController {
             StorageManager.shared.delete(context: context, object: task)
             taskList.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
-            
         }
-        
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -155,28 +160,6 @@ extension TaskListViewController {
         taskList[indexPath.row].name = "ku"
         guard let taskName = taskList[indexPath.row].name else { return }
         showAlertUpdate(for: indexPath, nameTask: taskName)
-//        StorageManager.shared.save(context: context)
-//        tableView.reloadRows(at: [indexPath], with: .fade)
+
     }
-    
-    private func showAlertUpdate(for indexPath: IndexPath, nameTask: String) {
-        let alert = UIAlertController(title: "Update task", message: "Please specify a new task", preferredStyle: .alert)
-        
-        let updateAction = UIAlertAction(title: "update", style: .default) { action in
-            guard let newTask = alert.textFields?.first?.text else { return }
-            self.taskList[indexPath.row].name = newTask
-            self.tableView.reloadRows(at: [indexPath], with: .fade)
-            StorageManager.shared.save(context: self.context)
-        }
-        
-        let canceleAction = UIAlertAction(title: "Cancel", style: .destructive)
-        alert.addAction(updateAction)
-        alert.addAction(canceleAction)
-        
-        alert.addTextField { textFields in
-            textFields.text = nameTask
-        }
-        present(alert, animated: true)
-    }
-   
 }
